@@ -1,4 +1,4 @@
-name: Deploy Ionic App Local
+name: Deploy Ionic App Locally
 
 on:
   push:
