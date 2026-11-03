@@ -1,0 +1,209 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      @if (isCheckingOut) {
+        <ion-button (click)="isCheckingOut = false">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      } @else {
+        <ion-button aria-label="Bumalik sa Shop" (click)="goToShop()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+    <ion-title>{{ isCheckingOut ? 'Checkout' : 'Shopping Cart & Order' }}</ion-title>
+    @if (!isCheckingOut && cartItems.length > 0) {
+      <ion-buttons slot="end">
+        <ion-button color="light" (click)="clearCart()">Clear All</ion-button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding checkout-content">
+
+  <!-- ================= NORMAL CART VIEW ================= -->
+  @if (!isCheckingOut) {
+    @if (cartItems.length === 0) {
+      <div class="empty-cart">
+        <ion-icon name="cart-outline" class="big-icon"></ion-icon>
+        <h3>Walang laman ang iyong cart</h3>
+        <p>Pumunta sa Tab 1 para mag-order ng mga t-shirt!</p>
+      </div>
+    }
+
+    @if (cartItems.length > 0) {
+      <ion-list lines="full">
+        @for (item of cartItems; track item.name; let i = $index) {
+          <ion-item class="product-card">
+            <ion-thumbnail slot="start">
+              <img [src]="item.imageUrl" [alt]="item.name" />
+            </ion-thumbnail>
+            <ion-label>
+              <h2 class="product-title"><strong>{{ item.name }}</strong></h2>
+              <p>Style: <strong>{{ item.style }}</strong></p>
+              <p>Color: <strong>{{ item.color }}</strong></p>
+              <p>Size: <strong>{{ item.size || 'M' }}</strong></p>
+              <p>Price per unit: ₱{{ item.price }}</p>
+              <p class="price-highlight">Subtotal: ₱{{ item.price * item.quantity }}</p>
+            </ion-label>
+            <div slot="end" class="qty-container">
+              <ion-button size="small" fill="outline" (click)="decreaseQty(i)">
+                <ion-icon name="remove-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <span class="qty-count">{{ item.quantity }}</span>
+              <ion-button size="small" fill="outline" (click)="increaseQty(i)">
+                <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button size="small" fill="clear" color="danger" (click)="removeItem(i)">
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+        }
+      </ion-list>
+
+      <ion-card class="total-card">
+        <ion-card-header>
+          <ion-card-title>Buod ng Order (Summary)</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-grid>
+            <ion-row>
+              <ion-col>Kabuuang Dami:</ion-col>
+              <ion-col class="ion-text-right"><strong>{{ cartService.getCartCount() }} pcs</strong></ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>Kabuuang Bayarin:</ion-col>
+              <ion-col class="ion-text-right price-highlight"><strong>₱{{ cartService.getTotalPrice() }}</strong></ion-col>
+            </ion-row>
+          </ion-grid>
+          <ion-button expand="block" class="ion-margin-top proceed-checkout-btn" (click)="goToCheckout()">
+            Proceed to Checkout
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    }
+  }
+
+
+  <!-- ================= CHECKOUT VIEW ================= -->
+  @if (isCheckingOut) {
+    <div class="checkout-container">
+
+      <!-- 1. Delivery Address Section -->
+      <div class="checkout-section-title">Delivery Address</div>
+      <div class="checkout-box address-box">
+        @if (!hasAddress) {
+          <ion-input label="Full name" label-placement="stacked" fill="outline" [(ngModel)]="fullName"></ion-input>
+          <ion-input label="Phone number" label-placement="stacked" fill="outline" [(ngModel)]="phoneNumber" class="ion-margin-top"></ion-input>
+          <ion-input label="Street / Barangay" label-placement="stacked" fill="outline" [(ngModel)]="streetAddress" class="ion-margin-top"></ion-input>
+          <ion-input label="City / Province" label-placement="stacked" fill="outline" [(ngModel)]="city" class="ion-margin-top"></ion-input>
+          <ion-button fill="outline" expand="block" class="add-address-btn ion-margin-top" (click)="addOrUpdateAddress()">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Save Address
+          </ion-button>
+        } @else {
+          <div class="saved-address">
+            <div class="address-header">
+              <strong><ion-icon name="location-outline"></ion-icon> {{ fullName }}</strong>
+              <button class="edit-text" type="button" (click)="hasAddress = false">Edit</button>
+            </div>
+            <p>{{ phoneNumber }}</p>
+            <p>{{ streetAddress }}, {{ city }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- 2. Shopping List Section -->
+      <div class="checkout-section-title">Shopping List</div>
+      @for (item of cartItems; track item.name) {
+        <div class="checkout-box item-row-box">
+          <div class="item-info-row">
+            <img [src]="item.imageUrl" [alt]="item.name" class="checkout-thumb" />
+            <div class="checkout-details">
+              <h4><strong>{{ item.name }}</strong></h4>
+              <p>Variation: {{ item.color }}, {{ item.size || 'M' }}, {{ item.style }}</p>
+              <p class="rating">★ 4.8</p>
+              <span class="store-badge">US Fashion</span>
+            </div>
+            <div class="price-display">
+              <span class="current-price">₱{{ item.price * item.quantity }}</span>
+              <span class="old-price">₱{{ (item.price * item.quantity) * 1.2 }}</span>
+            </div>
+          </div>
+          <div class="order-total-footer">
+            <span>Total Order ({{ item.quantity }}) :</span>
+            <strong>₱{{ item.price * item.quantity }}</strong>
+          </div>
+        </div>
+      }
+
+      <!-- 3. Shipping Options (Dynamic Selection) -->
+      <div class="checkout-box dropdown-box">
+        <div class="dropdown-label">
+          <ion-icon name="car-outline"></ion-icon>
+          <span>Shipping Options</span>
+        </div>
+        <ion-select aria-label="Shipping option" placeholder="Select a Shipping" [(ngModel)]="selectedShippingName" (ngModelChange)="updateShippingFee()">
+          <ion-select-option value="Standard">Standard (₱50)</ion-select-option>
+          <ion-select-option value="Express">Express (₱100)</ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- 4. Voucher and Promo -->
+      <div class="checkout-box dropdown-box">
+        <div class="dropdown-label">
+          <ion-icon name="ticket-outline"></ion-icon>
+          <span>Voucher and Promo</span>
+        </div>
+        <ion-input aria-label="Voucher code" placeholder="SAVE10 or FREESHIP" [(ngModel)]="voucherCode"></ion-input>
+        <ion-button size="small" fill="outline" (click)="applyVoucher()">Apply</ion-button>
+      </div>
+
+      <!-- 5. Payment Method -->
+      <div class="checkout-box dropdown-box">
+        <div class="dropdown-label">
+          <ion-icon name="card-outline"></ion-icon>
+          <span>Payment Method</span>
+        </div>
+        <ion-select aria-label="Payment method" placeholder="Select payment method" [(ngModel)]="selectedPaymentMethod">
+          <ion-select-option value="Cash on Delivery">Cash on Delivery</ion-select-option>
+          <ion-select-option value="GCash">GCash</ion-select-option>
+          <ion-select-option value="Card">Card</ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- 6. Summary Totals & Pay Now Button -->
+      <div class="checkout-summary-box">
+        <div class="summary-row">
+          <span>Sub Total :</span>
+          <span>₱{{ cartService.getTotalPrice() }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping Fee :</span>
+          <span>₱{{ selectedShippingFee }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Voucher Discount :</span>
+          <span>-₱{{ getVoucherSavings() }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Total Items :</span>
+          <span>{{ cartService.getCartCount() }}</span>
+        </div>
+        <hr class="summary-divider" />
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span class="highlight-total">₱{{ getGrandTotal() }}</span>
+        </div>
+
+        <ion-button expand="block" class="pay-now-btn" (click)="payNow()">
+          Pay Now
+        </ion-button>
+      </div>
+
+    </div>
+  }
+
+</ion-content>

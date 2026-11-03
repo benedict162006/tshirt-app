@@ -1,0 +1,14 @@
+<ion-content [fullscreen]="true" class="account-content">
+  <header class="account-header"><ion-button fill="clear" aria-label="Bumalik sa Shop" (click)="goToShop()"><ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon></ion-button><div><span class="eyebrow">KAHA SHOP</span><h1>Account</h1></div><ion-button fill="clear" aria-label="I-refresh ang order history" (click)="loadOrderHistory()"><ion-icon name="refresh-outline" slot="icon-only"></ion-icon></ion-button></header>
+  <main class="account-page">
+    <section class="profile-row"><div class="avatar"><ion-icon name="person-circle-outline"></ion-icon></div><div class="profile-copy"><h2>{{ userName }}</h2><p>KAHA Shop customer</p></div><ion-button fill="clear" aria-label="I-edit ang pangalan" (click)="editDashboardData()"><ion-icon name="create-outline" slot="icon-only"></ion-icon></ion-button></section>
+    <section class="account-actions"><button (click)="goToOrders()"><ion-icon name="bag-handle-outline"></ion-icon><span>My Orders</span><ion-icon name="chevron-forward-outline"></ion-icon></button><button (click)="showPaymentMethods()"><ion-icon name="card-outline"></ion-icon><span>Payments</span><ion-icon name="chevron-forward-outline"></ion-icon></button><button (click)="editDashboardData()"><ion-icon name="create-outline"></ion-icon><span>Edit Profile</span><ion-icon name="chevron-forward-outline"></ion-icon></button></section>
+    <section class="history-section"><div class="history-heading"><h2>Order History</h2><button aria-label="I-refresh ang order history" (click)="loadOrderHistory()"><ion-icon name="refresh-outline"></ion-icon></button></div>
+      @if (historyError) { <p class="history-error">{{ historyError }}</p> }
+      @if (orderHistory.length === 0 && !historyError) { <p class="history-empty">Wala pang saved orders.</p> }
+      @for (order of orderHistory; track order.id) {
+        <article class="history-row"><div class="order-copy"><strong>{{ order.name }}</strong><p>{{ order.orderId }} · {{ order.paidAt }}</p><p>{{ order.quantity }} pcs · {{ order.paymentMethod }} · ₱{{ order.grandTotal }}</p></div><button aria-label="I-edit ang order" (click)="editOrder(order)"><ion-icon name="create-outline"></ion-icon></button><button class="delete-action" aria-label="I-delete ang order" (click)="confirmDeleteOrder(order)"><ion-icon name="trash-outline"></ion-icon></button></article>
+      }
+    </section>
+  </main>
+</ion-content>

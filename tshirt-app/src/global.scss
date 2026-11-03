@@ -1,0 +1,117 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+@use './storefront-global';
+@use './promo-global';
+@use './live-promo';
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import '@ionic/angular/css/palettes/dark.system.css';
+ion-tab-bar.mobile-nav-bar {
+	--background: #fff;
+	--color: #697586;
+	--color-selected: #06468f;
+	border-top: 1px solid #e3e7ec;
+	min-height: 58px;
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+ion-tab-button {
+	font-size: 10px;
+
+	ion-icon {
+		font-size: 19px;
+	}
+}
+
+.detail-image-wrap .shirt-color-preview,
+.variant-thumb .shirt-color-preview {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.detail-image-wrap,
+.variant-thumb {
+	isolation: isolate;
+}
+
+.color-gallery {
+	padding: 9px 16px 2px;
+}
+
+.color-gallery .option-title {
+	margin-bottom: 5px;
+}
+
+.color-variant-thumb {
+	display: grid;
+	grid-template-rows: 48px auto;
+	gap: 3px;
+	flex-basis: 58px;
+	width: 58px;
+	height: 68px;
+	padding: 3px;
+	color: #10213d;
+	font-size: 9px;
+}
+
+.color-variant-thumb.active {
+	border: 2px solid #06468f;
+}
+
+.variant-thumb {
+	position: relative;
+	display: block;
+	width: 100%;
+	height: 48px;
+	overflow: hidden;
+	border-radius: 3px;
+	background: #edf0f3;
+}
+
+.variant-image {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.variant-label {
+	display: block;
+	line-height: 11px;
+	text-align: center;
+}

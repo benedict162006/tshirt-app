@@ -1,0 +1,124 @@
+<ion-content [fullscreen]="true" class="store-content">
+  @if (selectedProduct(); as product) {
+    <header class="detail-header">
+      <button class="icon-button" aria-label="Bumalik" (click)="backToProducts()"><ion-icon name="chevron-back-outline"></ion-icon></button>
+      <div class="detail-brand"><strong>KAHA</strong><span>SHOP</span></div>
+      <div class="header-actions">
+        <button class="icon-button" [attr.aria-label]="isFavorite(product) ? 'Alisin sa wishlist' : 'Idagdag sa wishlist'" (click)="toggleProductFavorite(product)"><ion-icon [name]="isFavorite(product) ? 'heart' : 'heart-outline'"></ion-icon></button>
+        <button class="icon-button" aria-label="I-share ang produkto" (click)="shareProduct(product)"><ion-icon name="share-social-outline"></ion-icon></button>
+        <button class="icon-button cart-button" aria-label="Buksan ang cart" (click)="goToCart()"><ion-icon name="cart-outline"></ion-icon><span class="cart-count">{{ cartService.getCartCount() }}</span></button>
+      </div>
+    </header>
+
+    <main class="detail-page">
+      <div class="detail-image-wrap">
+        <img class="detail-image" [src]="product.imageUrl" [alt]="product.name" />
+        <div class="shirt-color-preview" [style.backgroundColor]="getDefaultProductColor(product)" [style.mixBlendMode]="getColorBlendMode(product)" [style.opacity]="0.95" aria-hidden="true"></div>
+        <button class="image-favorite" aria-label="Toggle wishlist" (click)="toggleProductFavorite(product)"><ion-icon [name]="isFavorite(product) ? 'heart' : 'heart-outline'"></ion-icon></button>
+      </div>
+      <section class="detail-info">
+        <div class="product-heading"><h1>{{ product.name }}</h1><strong>₱{{ product.price }}</strong></div>
+        <div class="rating-line">@if (product.reviewCount > 0) { <span class="stars">★★★★★</span><span>{{ product.rating }} ({{ product.reviewCount }} Reviews)</span> } @else { <span>Bagong produkto</span> }</div>
+
+        <div class="option-block">
+          <div class="option-title">Pumili ng Sukat</div>
+          <div class="size-options">
+            @for (size of sizes; track size) {
+              <button [class.selected]="selectedSize === size" (click)="selectedSize = size">{{ size }}</button>
+            }
+          </div>
+        </div>
+
+        <p class="description">{{ product.description }} <button class="more-link" (click)="toggleReviews()">{{ isReviewsOpen ? 'mas kaunti' : '... higit pa' }}</button></p>
+        <button class="reviews-toggle" (click)="toggleReviews()"><span>Reviews</span><ion-icon [name]="isReviewsOpen ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon></button>
+        @if (isReviewsOpen) {
+          <div class="review-list">
+            <article><strong>Kaungay na Produkto</strong><span class="stars">★★★★★</span><p>Komportable ang tela at maganda ang print. Sakto ang size.</p></article>
+            <article><strong>Verified buyer</strong><span class="stars">★★★★★</span><p>Mabilis dumating at katulad ng nasa larawan.</p></article>
+          </div>
+        }
+        @if (cartNotice) { <p class="cart-notice" role="status">{{ cartNotice }}</p> }
+      </section>
+      <div class="detail-actions">
+        <button class="add-button" (click)="addToCart(product)">I-add sa Cart</button>
+        <button class="buy-button" (click)="onOrderNow(product)">I-Buy Now</button>
+      </div>
+    </main>
+  } @else {
+    <header class="store-header">
+      @if (currentView !== 'home') {
+        <button class="icon-button" aria-label="Bumalik sa Home" (click)="goToHome()"><ion-icon name="chevron-back-outline"></ion-icon></button>
+      }
+      <div class="brand-line"><div class="brand-mark"><ion-icon name="shirt-outline"></ion-icon></div><strong>KAHA</strong><span class="brand-divider"></span><span class="brand-shop">SHOP</span></div>
+      <button class="icon-button cart-button" aria-label="Buksan ang cart" (click)="goToCart()"><ion-icon name="cart-outline"></ion-icon><span class="cart-count">{{ cartService.getCartCount() }}</span></button>
+    </header>
+    <div class="search-row"><ion-icon name="search-outline"></ion-icon><input [(ngModel)]="searchQuery" type="search" placeholder="Maghanap ng mga T-shirt, disenyo..." aria-label="Maghanap ng produkto" />@if (searchQuery) { <button aria-label="I-clear ang search" (click)="clearSearch()"><ion-icon name="close-circle-outline"></ion-icon></button> }</div>
+
+    @if (currentView === 'home') {
+      <section class="promo-rail" aria-label="Live at mga promo">
+        <article class="live-promo">
+          <div class="promo-kicker"><span class="live-dot"></span> KAHA LIVE SHOPPING</div>
+          <h2>Bagong designs, live deals.</h2>
+          <p>Manood ng product drops at limited-time offers.</p>
+          <button (click)="openLiveShow()">Manood ng LIVE <ion-icon name="play-outline"></ion-icon></button>
+          @if (liveNotice) { <p class="live-notice" role="status">{{ liveNotice }}</p> }
+        </article>
+        <article class="voucher-promo">
+          <div class="promo-kicker">MEMBER DEALS</div>
+          <h2>10% off + free shipping</h2>
+          <p>Gamitin ang <strong>SAVE10</strong> o <strong>FREESHIP</strong> sa checkout.</p>
+          <button (click)="filterByCategory('Sale')">Tingnan ang deals <ion-icon name="arrow-forward-outline"></ion-icon></button>
+        </article>
+      </section>
+    }
+
+    <main class="store-page">
+      @if (currentView === 'home') {
+        <nav class="quick-categories" aria-label="Mga kategorya">
+          @for (category of categories; track category.name) {
+            <button [class.active]="activeCategory === category.name" (click)="filterByCategory(category.name)"><span class="category-icon"><ion-icon [name]="category.icon"></ion-icon></span><span>{{ category.label }}</span></button>
+          }
+        </nav>
+        <div class="section-heading"><h1>{{ activeCategory ? activeCategory + ' na Disenyo' : 'Pinakabagong Disenyo' }}</h1>@if (activeCategory) { <button (click)="filterByCategory('')">Ipakita lahat</button> }</div>
+      } @else if (currentView === 'categories') {
+        <div class="section-heading"><h1>Mga Kategorya</h1></div>
+        <div class="category-filters">
+          @for (category of categoryFilters; track category) {
+            <button [class.selected]="activeCategory === category" (click)="filterByCategory(category)">{{ category }}</button>
+          }
+          <button [class.selected]="!activeCategory" (click)="filterByCategory('')">Lahat</button>
+        </div>
+        <div class="section-heading category-results"><h2>{{ activeCategory || 'Lahat ng produkto' }}</h2></div>
+      } @else {
+        <div class="section-heading"><h1>Wishlist</h1><span>{{ filteredTshirtList.length }} item</span></div>
+      }
+
+      @if (currentView === 'home') {
+        <div class="product-grid">
+          @for (shirt of filteredTshirtList; track shirt.name) {
+            <article class="product-card">
+              <button class="product-photo" [attr.aria-label]="'Tingnan ang ' + shirt.name" (click)="selectProduct(shirt)"><img [src]="shirt.imageUrl" [alt]="shirt.name" /></button>
+              <button class="favorite-button" [attr.aria-label]="isFavorite(shirt) ? 'Alisin sa wishlist' : 'Idagdag sa wishlist'" (click)="toggleProductFavorite(shirt)"><ion-icon [name]="isFavorite(shirt) ? 'heart' : 'heart-outline'"></ion-icon></button>
+              <button class="product-copy" (click)="selectProduct(shirt)"><span class="product-name">{{ shirt.name }} · {{ shirt.style }}</span><span class="product-meta"><strong>₱{{ shirt.price }}</strong>@if (shirt.reviewCount > 0) { <span class="rating-mini"><span class="stars">★</span> {{ shirt.rating }}</span> } @else { <span class="rating-mini">Bago</span> }</span></button>
+              <button class="quick-add" (click)="addToCart(shirt)"><ion-icon name="add-outline"></ion-icon><span>Add sa cart</span></button>
+            </article>
+          } @empty { <div class="empty-state">Walang produktong tumutugma sa iyong search.</div> }
+        </div>
+      } @else {
+        <div class="product-grid">
+          @for (shirt of filteredTshirtList; track shirt.name) {
+            <article class="product-card">
+              <button class="product-photo" [attr.aria-label]="'Tingnan ang ' + shirt.name" (click)="selectProduct(shirt)"><img [src]="shirt.imageUrl" [alt]="shirt.name" /></button>
+              <button class="favorite-button" [attr.aria-label]="isFavorite(shirt) ? 'Alisin sa wishlist' : 'Idagdag sa wishlist'" (click)="toggleProductFavorite(shirt)"><ion-icon [name]="isFavorite(shirt) ? 'heart' : 'heart-outline'"></ion-icon></button>
+              <button class="product-copy" (click)="selectProduct(shirt)"><span class="product-name">{{ shirt.name }} · {{ shirt.style }}</span><span class="product-meta"><strong>₱{{ shirt.price }}</strong>@if (shirt.reviewCount > 0) { <span class="rating-mini"><span class="stars">★</span> {{ shirt.rating }}</span> } @else { <span class="rating-mini">Bago</span> }</span></button>
+              <button class="quick-add" (click)="addToCart(shirt)"><ion-icon name="add-outline"></ion-icon><span>Add sa cart</span></button>
+            </article>
+          } @empty {
+            <div class="empty-state">@if (currentView === 'wishlist') { <ion-icon name="heart-outline"></ion-icon><p>Wala pang laman ang wishlist mo.</p><a routerLink="/tabs/tab1">Mag-explore ng mga disenyo</a> } @else { <p>Walang produktong tumutugma sa iyong search.</p> }</div>
+          }
+        </div>
+      }
+      @if (cartNotice) { <p class="cart-notice" role="status">{{ cartNotice }}</p> }
+    </main>
+  }
+</ion-content>
