@@ -2,7 +2,7 @@
   @if (selectedProduct(); as product) {
     <header class="detail-header">
       <button class="icon-button" aria-label="Bumalik" (click)="backToProducts()"><ion-icon name="chevron-back-outline"></ion-icon></button>
-      <div class="detail-brand"><strong>KAHA</strong><span>SHOP</span></div>
+      <div class="detail-brand"><strong>KAHA</strong><span>bolbol</span></div>
       <div class="header-actions">
         <button class="icon-button" [attr.aria-label]="isFavorite(product) ? 'Alisin sa wishlist' : 'Idagdag sa wishlist'" (click)="toggleProductFavorite(product)"><ion-icon [name]="isFavorite(product) ? 'heart' : 'heart-outline'"></ion-icon></button>
         <button class="icon-button" aria-label="I-share ang produkto" (click)="shareProduct(product)"><ion-icon name="share-social-outline"></ion-icon></button>
