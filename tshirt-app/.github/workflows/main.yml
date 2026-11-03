@@ -1,0 +1,13 @@
+name: Test Self-Hosted Runner
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Run a test command
+        run: echo "Hello from my Windows self-hosted runner!"

@@ -1,13 +1,45 @@
-name: Test Self-Hosted Runner
+name: Deploy Ionic App Locally
 
-on: [push]
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: self-hosted
+  deploy:
+    runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Check out repository code
+      - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Run a test command
-        run: echo "Hello from my Windows self-hosted runner!"
+      - name: Build Ionic image
+        run: docker build -t tshirt-app .
+
+      - name: Remove previous container
+        run: docker rm -f tshirt-app-container
+        continue-on-error: true
+
+      - name: Start updated container
+        run: docker run -d --name tshirt-app-container --restart unless-stopped -p 8100:8100 tshirt-app
+
+      - name: Verify app
+        shell: pwsh
+        run: |
+          $success = $false
+          for ($i = 1; $i -le 15; $i++) {
+              try {
+                  $response = Invoke-WebRequest -Uri http://localhost:8100/ -UseBasicParsing -TimeoutSec 2
+                  if ($response.StatusCode -eq 200) {
+                      $success = $true
+                      break
+                  }
+              } catch {
+                  Start-Sleep -Seconds 2
+              }
+          }
+          if (-not $success) {
+              docker logs tshirt-app-container
+              exit 1
+          }
