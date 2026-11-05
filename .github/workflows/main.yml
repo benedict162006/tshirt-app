@@ -13,6 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Ionic image
+        working-directory: ./tshirt-app
         run: docker build -t tshirt-app-img .
 
       - name: Remove previous container
