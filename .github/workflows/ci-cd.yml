@@ -17,9 +17,21 @@ jobs:
         working-directory: ./tshirt-app
         run: docker build -t tshirt-app-img .
 
-      - name: Remove previous container
-        run: docker rm -f ionic-crud
-        continue-on-error: true
+      - name: Remove previous containers
+        shell: pwsh
+        run: |
+          foreach ($name in @("ionic-crud", "tshirt-app-container")) {
+            $containerId = docker container ls -aq --filter "name=^/$name$"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to look up Docker container '$name'."
+            }
+            if ($containerId) {
+              docker rm -f $containerId
+              if ($LASTEXITCODE -ne 0) {
+                throw "Failed to remove Docker container '$name'."
+              }
+            }
+          }
 
       - name: Start updated container
         run: docker run -d --name ionic-crud --restart unless-stopped -p 8100:8100 tshirt-app-img
