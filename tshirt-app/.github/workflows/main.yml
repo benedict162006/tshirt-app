@@ -1,45 +1,23 @@
-name: CI-CD Pipeline
+name: Deploy Ionic App Locally
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  continuous-integration:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci --if-present
-
-      - name: Run automated tests
-        run: npm test --if-present
-
-      - name: Build application
-        run: npm run build --if-present
-
   deploy:
-    needs: continuous-integration
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Checkout latest code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Stop Existing Container
+        run: |
+          docker stop ionic-firestore-crud-container 2>$null || true
+          docker rm ionic-firestore-crud-container 2>$null || true
+
+      - name: Build Docker Image
         run: docker build -t tshirt-app-img .
 
-      - name: Remove previous container
-        run: docker rm -f ionic-crud
-        continue-on-error: true
-
-      - name: Start updated container
-        run: docker run -d --name ionic-crud --restart unless-stopped -p 8100:8100 tshirt-app-img
+      - name: Run Docker Container
+        run: docker run -d -p 8100:8100 --name ionic-firestore-crud-container tshirt-app-img
