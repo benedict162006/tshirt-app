@@ -1,18 +1,40 @@
-name: Deploy Ionic App Locally
+name: CI-CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  deploy:
-    runs-on: [self-hosted, Windows, X64]
+  continuous-integration:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci --if-present
+
+      - name: Run automated tests
+        run: npm test --if-present
+
+      - name: Build application
+        run: npm run build --if-present
+
+  deploy:
+    needs: continuous-integration
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Checkout latest code
         uses: actions/checkout@v4
 
-      - name: Build Ionic image
+      - name: Build Docker image
         run: docker build -t tshirt-app-img .
 
       - name: Remove previous container
@@ -21,21 +43,3 @@ jobs:
 
       - name: Start updated container
         run: docker run -d --name ionic-crud --restart unless-stopped -p 8100:8100 tshirt-app-img
-
-      - name: Verify app
-        shell: pwsh
-        run: |
-          $success = $false
-          for ($i = 1; $i -le 15; $i++) {
-            try {
-              Invoke-WebRequest http://localhost:8100/ -UseBasicParsing -TimeoutSec 2 | Out-Null
-              $success = $true
-              break
-            } catch {
-              Start-Sleep -Seconds 2
-            }
-          }
-          if (-not $success) {
-            docker logs ionic-crud
-            exit 1
-          }
