@@ -32,6 +32,16 @@ jobs:
               }
             }
           }
+          $portContainerIds = @(docker container ls -q --filter "publish=8100")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to find containers publishing host port 8100."
+          }
+          if ($portContainerIds.Count -gt 0) {
+            docker rm -f $portContainerIds
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to remove containers publishing host port 8100."
+            }
+          }
 
       - name: Start updated container
         run: docker run -d --name ionic-crud --restart unless-stopped -p 8100:8100 tshirt-app-img
