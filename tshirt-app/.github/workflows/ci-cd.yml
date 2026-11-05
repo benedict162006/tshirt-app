@@ -1,0 +1,65 @@
+name: Deploy Ionic App Locally
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, Windows, X64]
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Build Ionic image
+        working-directory: ./tshirt-app
+        run: docker build -t tshirt-app-img .
+
+      - name: Remove previous containers
+        shell: powershell
+        run: |
+          foreach ($name in @("ionic-crud", "tshirt-app-container")) {
+            $containerId = docker container ls -aq --filter "name=^/$name$"
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to look up Docker container '$name'."
+            }
+            if ($containerId) {
+              docker rm -f $containerId
+              if ($LASTEXITCODE -ne 0) {
+                throw "Failed to remove Docker container '$name'."
+              }
+            }
+          }
+          $portContainerIds = @(docker container ls -q --filter "publish=8100")
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to find containers publishing host port 8100."
+          }
+          if ($portContainerIds.Count -gt 0) {
+            docker rm -f $portContainerIds
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to remove containers publishing host port 8100."
+            }
+          }
+
+      - name: Start updated container
+        run: docker run -d --name ionic-crud --restart unless-stopped -p 8100:8100 tshirt-app-img
+
+      - name: Verify app
+        shell: powershell
+        run: |
+          $success = $false
+          for ($i = 1; $i -le 15; $i++) {
+            try {
+              Invoke-WebRequest http://localhost:8100/ -UseBasicParsing -TimeoutSec 2 | Out-Null
+              $success = $true
+              break
+            } catch {
+              Start-Sleep -Seconds 2
+            }
+          }
+          if (-not $success) {
+            docker logs ionic-crud
+            exit 1
+          }
